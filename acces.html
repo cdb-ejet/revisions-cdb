@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Accès CDB">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1F3864">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="acces.webmanifest">
+<link rel="apple-touch-icon" href="icon-acces-180.png">
+<title>Accès – Révisions CDB</title>
+<style>
+:root{--bg:#F4F6FA;--card:#fff;--ink:#1d2433;--mute:#6b7385;--line:#e3e8f1;--navy:#1F3864;--gold:#E8B12F;--ok:#2E8B57;--okbg:#E3F3EA;--red:#C0392B;--redbg:#FBE3E1;--grey:#8a90a0;--greybg:#ECEEF2;--shadow:0 2px 10px rgba(20,30,60,.08)}
+@media (prefers-color-scheme:dark){:root{--bg:#10141c;--card:#1a202b;--ink:#e8ebf2;--mute:#9aa2b4;--line:#2a3140;--navy:#6f8fd0;--okbg:#173326;--redbg:#3a1d1b;--greybg:#262c38;--shadow:none}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+button{font:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:#1F3864;color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--gold)}
+header h1{font-size:19px;margin:0;flex:1;line-height:1.15}
+header h1 small{display:block;font-size:12.5px;font-weight:500;opacity:.75}
+.ib{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:10px;width:40px;height:40px;font-size:19px;display:flex;align-items:center;justify-content:center}
+.ib.spin span{display:inline-block;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+main{padding:12px 14px calc(100px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+.sum{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;font-size:14px;font-weight:600}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.search{width:100%;font-size:16px;padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:12px}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:13px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;color:inherit}
+.av{flex:none;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.card.off .av{background:var(--grey)}
+.card .t{flex:1;min-width:0}
+.card .n{font-weight:650;font-size:16px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.card .m{color:var(--mute);font-size:13.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .chev{color:var(--grey);font-size:20px}
+.card.off .n span.nm{color:var(--mute)}
+.pill{font-size:11.5px;font-weight:700;border-radius:10px;padding:2px 8px;letter-spacing:.2px}
+.pill.ok{background:var(--okbg);color:var(--ok)}
+.pill.off{background:var(--greybg);color:var(--grey)}
+.pill.me{background:#FFF3D6;color:#8a6200}
+.sec{font-size:12.5px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;margin:16px 4px 8px}
+.empty{color:var(--mute);text-align:center;padding:26px 10px;font-size:15px}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));z-index:6;border:0;border-radius:28px;background:var(--navy);color:#fff;font-weight:700;font-size:16.5px;padding:15px 26px;box-shadow:0 6px 20px rgba(20,30,60,.35);white-space:nowrap}
+.note{background:var(--card);border-radius:12px;padding:11px 13px;font-size:14px;color:var(--mute);margin-bottom:12px;box-shadow:var(--shadow)}
+.note.warn{background:var(--redbg);color:var(--red);box-shadow:none}
+.note b{color:var(--ink)}
+.note.warn b{color:var(--red)}
+.note .x{float:right;border:0;background:none;color:var(--mute);font-size:17px;padding:0 0 4px 10px}
+/* panneau du bas */
+.veil{position:fixed;inset:0;background:rgba(10,15,30,.45);z-index:20;opacity:0;transition:opacity .2s}
+.veil.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--card);border-radius:18px 18px 0 0;max-height:92vh;overflow:auto;padding:8px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease;max-width:640px;margin:0 auto}
+.sheet.on{transform:none}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 12px}
+.sheet h2{font-size:20px;margin:0 0 4px}
+.sheet .sub{color:var(--mute);font-size:14px;margin:0 0 14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px;margin:0 0 16px;background:var(--bg);border-radius:12px;padding:12px 14px}
+.kv dt{color:var(--mute)}
+.kv dd{margin:0;font-weight:600;text-align:right}
+label.f{display:block;font-size:13.5px;font-weight:650;color:var(--mute);margin:0 0 5px}
+input.f,textarea.f{width:100%;font:16px/1.4 inherit;font-family:inherit;padding:11px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:13px}
+textarea.f{min-height:180px;font-size:14.5px;resize:vertical}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:12px;padding:14px;font-weight:650;font-size:16px;margin-bottom:9px;background:var(--greybg);color:var(--ink);text-decoration:none}
+.btn.p{background:var(--navy);color:#fff}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.r{background:var(--redbg);color:var(--red)}
+.btn:disabled{opacity:.55}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row .btn{margin-bottom:9px}
+.lnk{font:13px ui-monospace,Menlo,Consolas,monospace;word-break:break-all;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;color:var(--mute);user-select:all;-webkit-user-select:all}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;margin:4px 0 14px}
+.chk input{width:22px;height:22px;flex:none;margin:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(-20px);top:calc(64px + env(safe-area-inset-top));z-index:40;background:#1d2433;color:#fff;border-radius:12px;padding:11px 16px;font-size:14.5px;font-weight:600;opacity:0;transition:.2s;max-width:90vw;text-align:center;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{background:var(--red)}
+.login{max-width:440px;margin:30px auto;background:var(--card);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.login h2{margin:0 0 8px;font-size:19px;color:var(--navy)}
+.login p{color:var(--mute);font-size:14.5px;margin:0 0 12px}
+.foot{text-align:center;margin-top:24px;font-size:13px;color:var(--mute)}
+.foot button{border:0;background:none;color:var(--mute);text-decoration:underline;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Accès<small>Révisions CDB · gestion des liens</small></h1>
+  <button class="ib" id="refresh" aria-label="Actualiser"><span>↻</span></button>
+</header>
+<main id="main"></main>
+<button class="fab" id="fab" hidden>＋ Nouvel accès</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/*
+ * Révisions CDB – page « Accès » (v4.7). Aucune donnée dans cette page : la liste vient du script
+ * Google (Acces.gs), qui vérifie la clé de gestion à chaque appel. La clé reste sur cet appareil.
+ */
+(() => {
+  const EXEC = "https://script.google.com/macros/s/AKfycbymDstESl2kAZq00-4HbyVd8lFnWpp2USYG6Y6uqpJXbDREuFTiNiMw7fpPWVDoFyy65A/exec";
+  const GK = "cdb-gestion", CK = "cdb-gestion-liste", HK = "cdb-gestion-astuce";
+  const $ = id => document.getElementById(id), main = $("main"), fab = $("fab");
+  const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }, del(k) { try { localStorage.removeItem(k); } catch (e) { } } };
+  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const keyFrom = s => { s = String(s || ""); const m = s.match(/[?&#]g=([A-Za-z0-9]{24,64})/) || s.trim().match(/^([A-Za-z0-9]{24,64})$/); return m ? m[1] : ""; };
+
+  let G = keyFrom(location.search) || keyFrom(location.hash) || ls.get(GK) || "";
+  if (G) ls.set(GK, G);
+  let data = null, filtre = "tous", recherche = "", horsLigne = 0;
+
+  // ---------------------------------------------------------------- appels au script
+  async function call(fn, ...args) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 45000);
+    let res;
+    try { res = await fetch(EXEC, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args: [G, ...args] }), redirect: "follow", signal: ctl.signal }); }
+    catch (e) { throw new Error(e && e.name === "AbortError" ? "Serveur trop long à répondre." : "Pas de connexion au serveur."); }
+    finally { clearTimeout(t); }
+    let j; try { j = await res.json(); } catch (e) { throw new Error("Réponse du serveur illisible (" + res.status + ")."); }
+    if (!j || !j.ok) { const m = (j && j.e) || "Erreur du serveur."; if (/cl[ée] de gestion refus/i.test(m)) { ls.del(GK); ls.del(CK); G = ""; login(m); } throw new Error(m); }
+    return typeof j.r === "string" ? JSON.parse(j.r) : j.r;
+  }
+
+  // ---------------------------------------------------------------- outils d'affichage
+  let tt;
+  function toast(msg, err) { const t = $("toast"); t.textContent = msg; t.className = "toast on" + (err ? " err" : ""); clearTimeout(tt); tt = setTimeout(() => t.className = "toast", err ? 4200 : 2200); }
+  const initiales = n => n.split(/[\s.-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
+  const prenom = n => String(n).split(" ")[0];
+  const d2 = n => String(n).padStart(2, "0");
+  const date = t => { const d = new Date(t); return d2(d.getDate()) + "/" + d2(d.getMonth() + 1) + "/" + String(d.getFullYear()).slice(2); };
+  const heure = t => { const d = new Date(t); return d2(d.getHours()) + "h" + d2(d.getMinutes()); };
+  function rel(t) {
+    if (!t) return "jamais";
+    const h = (Date.now() - t) / 3600000;
+    if (h < 1) return "dans l'heure";
+    if (h < 20) return "il y a " + Math.round(h) + " h";
+    const j = Math.round(h / 24);
+    if (j <= 1) return "hier";
+    if (j < 30) return "il y a " + j + " j";
+    return "le " + date(t);
+  }
+  function busy(on) { $("refresh").classList.toggle("spin", on); }
+
+  // panneau du bas
+  let veil, sheet;
+  function openSheet(html) {
+    closeSheet(true);
+    veil = document.createElement("div"); veil.className = "veil"; veil.onclick = () => closeSheet();
+    sheet = document.createElement("div"); sheet.className = "sheet"; sheet.setAttribute("role", "dialog");
+    sheet.innerHTML = '<div class="grab"></div>' + html;
+    document.body.append(veil, sheet);
+    requestAnimationFrame(() => { veil.classList.add("on"); sheet.classList.add("on"); });
+    return sheet;
+  }
+  function closeSheet(now) {
+    const v = veil, s = sheet; veil = sheet = null;
+    if (!s) return;
+    if (now) { v.remove(); s.remove(); return; }
+    v.classList.remove("on"); s.classList.remove("on"); setTimeout(() => { v.remove(); s.remove(); }, 260);
+  }
+  function confirmer({ titre, texte, ok, danger, case: cb }) {
+    return new Promise(res => {
+      const s = openSheet(`<h2>${esc(titre)}</h2><p class="sub">${texte}</p>${cb ? `<label class="chk"><input type="checkbox" id="cf-c"><span>${cb}</span></label>` : ""}<button class="btn ${danger ? "r" : "p"}" id="cf-ok">${esc(ok)}</button><button class="btn" id="cf-no">Annuler</button>`);
+      s.querySelector("#cf-ok").onclick = () => { const c = s.querySelector("#cf-c"); closeSheet(); res({ ok: true, coche: !!(c && c.checked) }); };
+      s.querySelector("#cf-no").onclick = () => { closeSheet(); res({ ok: false }); };
+    });
+  }
+
+  // ---------------------------------------------------------------- écran de connexion
+  function login(msg) {
+    fab.hidden = true; data = null;
+    main.innerHTML = `<div class="login"><h2>Gestion des accès</h2>${msg ? `<div class="note warn">${esc(msg)}</div>` : ""}
+      <p>Collez votre <b>lien de gestion</b> (affiché par <b>activerGestion</b> dans l'éditeur Apps Script), ou seulement la clé qui le termine (après <b>?g=</b>).</p>
+      <p>Ce lien n'est <b>pas</b> celui de l'application : ne le donnez à personne.</p>
+      <input class="f" id="lg" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Lien ou clé de gestion">
+      <button class="btn p" id="lgo">Ouvrir</button></div>`;
+    const inp = $("lg"), go = () => { const k = keyFrom(inp.value); if (!k) { inp.style.borderColor = "var(--red)"; return; } G = k; ls.set(GK, k); charger(); };
+    $("lgo").onclick = go; inp.onkeydown = e => { if (e.key === "Enter") go(); };
+  }
+
+  // ---------------------------------------------------------------- liste
+  async function charger(silencieux) {
+    if (!G) return login();
+    busy(true);
+    try {
+      data = await call("gestionListe"); horsLigne = 0;
+      ls.set(CK, JSON.stringify(data));
+      afficher();
+    } catch (e) {
+      if (!G) return;
+      const c = ls.get(CK);
+      if (c && !data) { try { data = JSON.parse(c); horsLigne = data.maj || 1; afficher(); } catch (x) { } }
+      if (!data) main.innerHTML = `<div class="login"><h2>Gestion des accès</h2><div class="note warn">${esc(e.message)}</div><button class="btn p" id="re">Réessayer</button></div>`, $("re").onclick = () => charger();
+      if (!silencieux) toast(e.message, true);
+    } finally { busy(false); }
+  }
+
+  function carte(p, moi) {
+    const off = !moi && !p.actif;
+    const etat = moi ? `<span class="pill me">Vous</span>` : off ? `<span class="pill off">Suspendu</span>` : `<span class="pill ok">Actif</span>`;
+    const info = [p.vu ? "ouvert " + rel(p.vu) : "jamais ouvert", p.profils ? p.profils + " profil" + (p.profils > 1 ? "s" : "") : "", p.note || ""].filter(Boolean).join(" · ");
+    return `<button class="card${off ? " off" : ""}" data-k="${moi ? "" : esc(p.k)}"><div class="av">${esc(initiales(p.nom))}</div><div class="t"><div class="n"><span class="nm">${esc(p.nom)}</span>${etat}</div><div class="m">${esc(info)}</div></div><span class="chev">›</span></button>`;
+  }
+
+  function afficher() {
+    if (!data) return;
+    fab.hidden = !!horsLigne;
+    const gens = data.gens || [], nA = gens.filter(p => p.actif).length, nS = gens.length - nA;
+    const q = recherche.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const vis = gens.filter(p => (filtre === "tous" || (filtre === "actifs") === p.actif) &&
+      (!q || (p.nom + " " + p.note).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q)));
+    const standalone = navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+    const astuce = !standalone && !ls.get(HK) ? `<div class="note"><button class="x" id="hx" aria-label="Fermer">✕</button><b>Astuce :</b> installez cette page sur l'écran d'accueil (Safari : Partager → « Sur l'écran d'accueil »). À la première ouverture depuis l'icône, collez à nouveau le lien de gestion.</div>` : "";
+    const hl = horsLigne ? `<div class="note warn"><b>Hors ligne :</b> liste du ${date(horsLigne)} à ${heure(horsLigne)}, en lecture seule.</div>` : "";
+    main.innerHTML = hl + astuce +
+      `<div class="sum"><button class="chip${filtre === "tous" ? " on" : ""}" data-f="tous">Tous · ${gens.length}</button><button class="chip${filtre === "actifs" ? " on" : ""}" data-f="actifs">Actifs · ${nA}</button><button class="chip${filtre === "suspendus" ? " on" : ""}" data-f="suspendus">Suspendus · ${nS}</button></div>` +
+      (gens.length > 5 ? `<input class="search" id="q" type="search" placeholder="Rechercher un nom, une note…" value="${esc(recherche)}">` : "") +
+      `<div class="sec">Collègues</div>` +
+      (vis.length ? vis.map(p => carte(p)).join("") : `<div class="empty">${gens.length ? "Aucun résultat." : "Aucun collègue pour l'instant.<br>Touchez « ＋ Nouvel accès »."}</div>`) +
+      `<div class="sec">Vous</div>` + carte(data.proprietaire, true) +
+      `<div class="foot">Mis à jour ${data.maj ? "à " + heure(data.maj) : ""} · <button id="out">Oublier la clé sur cet appareil</button></div>`;
+    main.querySelectorAll(".chip").forEach(b => b.onclick = () => { filtre = b.dataset.f; afficher(); });
+    main.querySelectorAll(".card").forEach(b => b.onclick = () => b.dataset.k ? fiche(b.dataset.k) : ficheMoi());
+    const qi = $("q"); if (qi) qi.oninput = () => { recherche = qi.value; const pos = qi.selectionStart; afficher(); const n = $("q"); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { } };
+    const hx = $("hx"); if (hx) hx.onclick = () => { ls.set(HK, "1"); afficher(); };
+    $("out").onclick = async () => { const r = await confirmer({ titre: "Oublier la clé de gestion ?", texte: "Cette page vous redemandera le lien de gestion. Les accès des collègues ne changent pas.", ok: "Oublier" }); if (r.ok) { ls.del(GK); ls.del(CK); G = ""; login(); } };
+  }
+
+  // ---------------------------------------------------------------- message et envoi du lien
+  function message(p) {
+    const moi = (data && data.proprietaire && data.proprietaire.nom) || "";
+    return `Bonjour ${prenom(p.nom)},\n\nVoici ton accès personnel à Révisions CDB (E190/E170) :\n${p.lien}\n\n1. Ouvre le lien dans Safari (iPhone, iPad) ou Chrome (Android).\n2. Ajoute-le à l'écran d'accueil (Safari : Partager → « Sur l'écran d'accueil »).\nAprès la première ouverture, l'application fonctionne aussi hors ligne.\n\nCe lien est personnel : merci de ne pas le transférer. Tes remarques sont les bienvenues (bouton 💬 Commenter).\n\n${moi}`.trim();
+  }
+  async function copier(txt) {
+    try { await navigator.clipboard.writeText(txt); return true; } catch (e) { }
+    const t = document.createElement("textarea"); t.value = txt; t.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (e) { } t.remove(); return ok;
+  }
+  function envoyer(p, titre) {
+    const s = openSheet(`<h2>${esc(titre || "Envoyer le lien")}</h2><p class="sub">Destinataire : <b>${esc(p.nom)}</b> · le message peut être modifié avant l'envoi.</p>
+      ${p.actif === false ? `<div class="note warn"><b>Accès suspendu :</b> ce lien ne fonctionnera qu'après réactivation.</div>` : ""}
+      ${p.reprise ? `<div class="note"><b>Progression retrouvée :</b> ${p.reprise} profil${p.reprise > 1 ? "s" : ""} existai${p.reprise > 1 ? "ent" : "t"} déjà à ce nom, ${prenom(p.nom)} les retrouvera.</div>` : ""}
+      <textarea class="f" id="msg">${esc(message(p))}</textarea>
+      ${navigator.share ? `<button class="btn p" id="sh">Partager…</button>` : ""}
+      <div class="row"><a class="btn ok" id="wa" target="_blank" rel="noopener">WhatsApp</a><a class="btn" id="sms">SMS</a></div>
+      <div class="row"><a class="btn" id="ml">E-mail</a><button class="btn" id="cp">Copier</button></div>
+      <button class="btn" id="cl">Fermer</button>`);
+    const m = s.querySelector("#msg"), txt = () => m.value;
+    const maj = () => {
+      s.querySelector("#wa").href = "https://wa.me/?text=" + encodeURIComponent(txt());
+      s.querySelector("#sms").href = "sms:?&body=" + encodeURIComponent(txt());
+      s.querySelector("#ml").href = "mailto:?subject=" + encodeURIComponent("Ton accès Révisions CDB") + "&body=" + encodeURIComponent(txt());
+    };
+    maj(); m.oninput = maj;
+    const sh = s.querySelector("#sh");
+    if (sh) sh.onclick = async () => { try { await navigator.share({ text: txt() }); } catch (e) { if (e && e.name !== "AbortError") toast("Partage impossible : utilisez Copier.", true); } };
+    s.querySelector("#cp").onclick = async () => toast(await copier(txt()) ? "Message copié" : "Copie impossible : sélectionnez le texte.", !1);
+    s.querySelector("#cl").onclick = () => closeSheet();
+  }
+
+  // ---------------------------------------------------------------- création
+  function nouveau() {
+    const s = openSheet(`<h2>Nouvel accès</h2><p class="sub">Le nom identifie la progression de la personne : choisissez-le une fois pour toutes (prénom et initiale suffisent).</p>
+      <label class="f" for="nn">Nom</label><input class="f" id="nn" type="text" autocomplete="off" autocapitalize="words" placeholder="Ex. : Julie M." maxlength="60">
+      <label class="f" for="no">Note (facultatif)</label><input class="f" id="no" type="text" autocomplete="off" placeholder="Ex. : OPL ORY, demande du 14/11" maxlength="120">
+      <button class="btn p" id="go">Créer et envoyer le lien</button><button class="btn" id="an">Annuler</button>`);
+    const nn = s.querySelector("#nn"), go = s.querySelector("#go");
+    setTimeout(() => nn.focus(), 280);
+    s.querySelector("#an").onclick = () => closeSheet();
+    nn.onkeydown = e => { if (e.key === "Enter") s.querySelector("#no").focus(); };
+    go.onclick = async () => {
+      const nom = nn.value.replace(/\s+/g, " ").trim(), note = s.querySelector("#no").value.trim();
+      if (nom.length < 2) { nn.style.borderColor = "var(--red)"; nn.focus(); return; }
+      go.disabled = true; go.textContent = "Création…";
+      try {
+        const r = await call("gestionAjout", nom, note);
+        toast("Accès créé pour " + nom);
+        charger(true);
+        envoyer({ nom, lien: r.lien, actif: true, reprise: r.reprise }, "Accès créé ✓");
+      } catch (e) { toast(e.message, true); go.disabled = false; go.textContent = "Créer et envoyer le lien"; }
+    };
+  }
+
+  // ---------------------------------------------------------------- fiche d'un collègue
+  function ficheMoi() {
+    const p = data.proprietaire;
+    const s = openSheet(`<h2>${esc(p.nom)} <span class="pill me">Vous</span></h2><p class="sub">Votre accès à l'application (clé propriétaire, fixée dans Code.gs).</p>
+      <dl class="kv"><dt>Dernière ouverture</dt><dd>${rel(p.vu)}</dd><dt>Profils</dt><dd>${p.profils}</dd><dt>Dernière synchro</dt><dd>${p.synchro ? date(p.synchro) + " " + heure(p.synchro) : "—"}</dd></dl>
+      <div class="lnk">${esc(p.lien)}</div><button class="btn" id="cp">Copier mon lien</button><button class="btn" id="cl">Fermer</button>`);
+    s.querySelector("#cp").onclick = async () => toast(await copier(p.lien) ? "Lien copié" : "Copie impossible", false);
+    s.querySelector("#cl").onclick = () => closeSheet();
+  }
+
+  async function agir(p, action, val, ok) {
+    busy(true);
+    try { const r = await call("gestionAction", p.k, action, val || ""); toast(ok); await charger(true); return r; }
+    catch (e) { toast(e.message, true); return null; }
+    finally { busy(false); }
+  }
+
+  function fiche(k) {
+    const p = (data.gens || []).find(x => x.k === k); if (!p) return;
+    const lect = !!horsLigne;
+    const s = openSheet(`<h2>${esc(p.nom)} ${p.actif ? `<span class="pill ok">Actif</span>` : `<span class="pill off">Suspendu</span>`}</h2>
+      <p class="sub">${p.note ? esc(p.note) : "Pas de note."}</p>
+      <dl class="kv"><dt>Créé le</dt><dd>${p.cree ? date(p.cree) : "—"}</dd>
+        ${p.susp && !p.actif ? `<dt>Suspendu le</dt><dd>${date(p.susp)}</dd>` : ""}
+        <dt>Dernière ouverture</dt><dd>${rel(p.vu)}</dd><dt>Profils</dt><dd>${p.profils}</dd>
+        <dt>Dernière synchro</dt><dd>${p.synchro ? date(p.synchro) + " " + heure(p.synchro) : "—"}</dd></dl>
+      <button class="btn p" id="en">Envoyer le lien</button>
+      ${lect ? `<div class="note warn">Hors ligne : actions indisponibles.</div>` : `
+      <div class="row"><button class="btn" id="nt">Modifier la note</button><button class="btn" id="su">${p.actif ? "Suspendre" : "Réactiver"}</button></div>
+      <button class="btn" id="nk">Nouvelle clé (nouveau lien)</button>
+      <button class="btn r" id="sp">Supprimer l'accès</button>`}
+      <button class="btn" id="cl">Fermer</button>`);
+    s.querySelector("#en").onclick = () => envoyer(p);
+    s.querySelector("#cl").onclick = () => closeSheet();
+    if (lect) return;
+    s.querySelector("#nt").onclick = () => {
+      const t = openSheet(`<h2>Note</h2><p class="sub">${esc(p.nom)} · visible seulement ici et dans la feuille des liens.</p><input class="f" id="nv" type="text" maxlength="120" value="${esc(p.note)}"><button class="btn p" id="ok">Enregistrer</button><button class="btn" id="an">Annuler</button>`);
+      t.querySelector("#an").onclick = () => closeSheet();
+      t.querySelector("#ok").onclick = async () => { const v = t.querySelector("#nv").value; closeSheet(); await agir(p, "note", v, "Note enregistrée"); };
+    };
+    s.querySelector("#su").onclick = async () => {
+      if (p.actif) {
+        const r = await confirmer({ titre: "Suspendre " + p.nom + " ?", texte: "Le lien cesse de fonctionner tout de suite. À sa prochaine ouverture avec du réseau, l'application est effacée de son appareil. Sa progression est gardée : <b>Réactiver</b> lui rend l'accès avec le même lien.", ok: "Suspendre", danger: true });
+        if (r.ok) agir(p, "suspendre", "", p.nom + " : accès suspendu");
+      } else agir(p, "reactiver", "", p.nom + " : accès réactivé (même lien)");
+    };
+    s.querySelector("#nk").onclick = async () => {
+      const r = await confirmer({ titre: "Nouvelle clé pour " + p.nom + " ?", texte: "À utiliser si le lien a été transmis à quelqu'un d'autre. <b>L'ancien lien cesse de fonctionner</b> ; " + esc(prenom(p.nom)) + " devra ouvrir le nouveau. Sa progression est gardée.", ok: "Créer une nouvelle clé", danger: true });
+      if (!r.ok) return;
+      const x = await agir(p, "nouvelleCle", "", "Nouvelle clé créée");
+      if (x) envoyer({ nom: p.nom, lien: x.lien, actif: p.actif }, "Nouveau lien");
+    };
+    s.querySelector("#sp").onclick = async () => {
+      const r = await confirmer({ titre: "Supprimer l'accès de " + p.nom + " ?", texte: "Le lien cesse de fonctionner et la personne disparaît de la liste. Pour une coupure temporaire, préférez <b>Suspendre</b>.", ok: "Supprimer", danger: true, case: "Mettre aussi sa progression à la corbeille Drive (sinon elle sera retrouvée si l'accès est recréé au même nom)" });
+      if (!r.ok) return;
+      const x = await agir(p, "supprimer", r.coche ? "effacer" : "", p.nom + " : accès supprimé");
+      if (x && x.efface) toast(x.efface + " profil" + (x.efface > 1 ? "s" : "") + " mis à la corbeille");
+    };
+  }
+
+  // ---------------------------------------------------------------- démarrage
+  fab.onclick = nouveau;
+  $("refresh").onclick = () => charger();
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && G && data && !sheet) charger(true); });
+  charger();
+})();
+</script>
+</body>
+</html>
