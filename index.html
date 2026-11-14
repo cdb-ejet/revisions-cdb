@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Test CDB">
+<meta name="theme-color" content="#1F3864">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Test stockage – Révisions CDB</title>
+<style>
+:root{--navy:#1F3864;--green:#2E8B57;--red:#C0392B;--bg:#F4F6FA;--line:#dde3ee;--mute:#6b7385}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#1d2433;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
+header h1{font-size:17px;margin:0}
+header div{font-size:12.5px;opacity:.8;margin-top:3px}
+main{max-width:640px;margin:0 auto;padding:16px 14px calc(30px + env(safe-area-inset-bottom))}
+.panel{background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(20,30,60,.08);margin-bottom:14px}
+h2{font-size:16px;margin:0 0 10px;color:var(--navy)}
+.verdict{border-radius:12px;padding:14px 16px;font-size:16px;font-weight:600;margin-bottom:14px;line-height:1.4}
+.ok{background:#E6F4EA;color:#1d5e3a;border-left:6px solid var(--green)}
+.ko{background:#FBE3E1;color:#7B1F1F;border-left:6px solid var(--red)}
+.wait{background:#FFF4D6;color:#6b4e00;border-left:6px solid #C9962A}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--mute);width:48%}
+.btn{display:block;width:100%;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:600;background:var(--navy);color:#fff;margin-top:8px;cursor:pointer}
+.btn.sec{background:#e8edf6;color:var(--navy)}
+.btn.red{background:#fbe3e1;color:var(--red)}
+.btn:disabled{opacity:.45}
+input{width:100%;font-size:16px;padding:10px;border-radius:9px;border:1.5px solid var(--line)}
+.muted{color:var(--mute);font-size:13px;line-height:1.45}
+</style>
+</head>
+<body>
+<header><h1>Test de stockage – Révisions CDB</h1><div id="mode">…</div></header>
+<main>
+  <div id="verdict" class="verdict wait">Analyse en cours…</div>
+
+  <div class="panel"><h2>Ce que l'appareil a gardé</h2><table id="tbl"></table></div>
+
+  <div class="panel"><h2>1. Texte (comme la version des notes lues)</h2>
+    <input id="txt" placeholder="Tapez un mot, par exemple « Gandalf »">
+    <button class="btn" id="savetxt">Enregistrer ce texte</button>
+  </div>
+
+  <div class="panel"><h2>2. Gros volume (comme les fiches)</h2>
+    <p class="muted">Enregistre 20 Mo dans la base locale, l'équivalent d'un jeu de fiches avec illustrations.</p>
+    <button class="btn" id="savebig">Enregistrer 20 Mo</button>
+    <div class="muted" id="bigst" style="margin-top:8px"></div>
+  </div>
+
+  <div class="panel"><h2>Remise à zéro</h2>
+    <button class="btn red" id="wipe">Tout effacer pour recommencer le test</button>
+  </div>
+
+  <p class="muted">Prototype sans aucun contenu compagnie. Il sert uniquement à vérifier que l'iPad conserve les données entre deux lancements.</p>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = t => t ? new Date(+t).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
+const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+$("mode").textContent = standalone ? "Mode : application de l'écran d'accueil" : "Mode : onglet du navigateur";
+
+// ---- localStorage
+const LS = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+};
+const pre = standalone ? "app-" : "tab-";
+const prevCount = +(LS.get(pre + "count") || 0), first = LS.get(pre + "first"), prevLast = LS.get(pre + "last");
+const lsOK = LS.set(pre + "count", String(prevCount + 1));
+if (!first) LS.set(pre + "first", String(Date.now()));
+LS.set(pre + "last", String(Date.now()));
+
+// ---- IndexedDB
+const MB = 1024 * 1024, NBIG = 20;
+function idb() {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open("proto-cdb", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("f");
+      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+}
+function idbAll(db) {
+  return new Promise(res => {
+    try {
+      const out = {}, q = db.transaction("f").objectStore("f").openCursor();
+      q.onsuccess = () => { const c = q.result; if (c) { out[c.key] = c.value; c.continue(); } else res(out); };
+      q.onerror = () => res({});
+    } catch (e) { res({}); }
+  });
+}
+function idbPut(db, k, v) {
+  return new Promise((res, rej) => {
+    try { const t = db.transaction("f", "readwrite"); t.objectStore("f").put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }
+    catch (e) { rej(e); }
+  });
+}
+
+async function analyse() {
+  const db = await idb(), all = db ? await idbAll(db) : {};
+  let bigN = 0, bigB = 0;
+  for (const k in all) if (k.startsWith("big-")) { bigN++; bigB += all[k].byteLength || (all[k].length || 0); }
+  let persisted = null, est = null;
+  try { if (navigator.storage && navigator.storage.persist) persisted = await navigator.storage.persist(); } catch (e) { }
+  try { if (navigator.storage && navigator.storage.estimate) est = await navigator.storage.estimate(); } catch (e) { }
+  const txt = LS.get(pre + "txt");
+  const swOK = "serviceWorker" in navigator && !!navigator.serviceWorker.controller;
+
+  const rows = [
+    ["Lancements comptés", lsOK ? String(prevCount + 1) : "stockage refusé"],
+    ["Premier lancement enregistré", fmt(first || LS.get(pre + "first"))],
+    ["Lancement précédent", fmt(prevLast)],
+    ["Texte enregistré", txt ? "« " + txt + " »" : "—"],
+    ["Gros volume (base locale)", bigN ? `${bigN} / ${NBIG} blocs, ${(bigB / MB).toFixed(0)} Mo` : "—"],
+    ["Stockage durable accordé", persisted === null ? "non pris en charge" : persisted ? "oui" : "non"],
+    ["Espace utilisé / disponible", est ? `${(est.usage / MB).toFixed(1)} Mo / ${(est.quota / MB / 1024).toFixed(1)} Go` : "—"],
+    ["Fonctionne hors ligne", swOK ? "oui" : "pas encore (relancer une fois)"]
+  ];
+  $("tbl").innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td><b></b></td></tr>`).join("");
+  $("tbl").querySelectorAll("b").forEach((b, i) => b.textContent = rows[i][1]);
+  $("bigst").textContent = bigN ? `${bigN} blocs présents sur cet appareil.` : "";
+
+  const v = $("verdict");
+  if (!lsOK || !db) { v.className = "verdict ko"; v.textContent = "✗ Ce navigateur refuse le stockage local."; }
+  else if (prevCount === 0 && !txt && !bigN) { v.className = "verdict wait"; v.textContent = "Premier lancement : enregistrez un texte et les 20 Mo, puis fermez complètement et rouvrez."; }
+  else if (prevCount === 0) { v.className = "verdict ko"; v.textContent = "✗ Les données ont été effacées depuis le dernier lancement."; }
+  else if (txt && bigN === NBIG) { v.className = "verdict ok"; v.textContent = `✓ Données conservées : le texte et les 20 Mo sont toujours là (lancement n° ${prevCount + 1}).`; }
+  else { v.className = "verdict wait"; v.textContent = `Lancement n° ${prevCount + 1} : compteur conservé. Enregistrez le texte et les 20 Mo s'il en manque, puis refermez et rouvrez.`; }
+}
+
+$("savetxt").onclick = () => { const t = $("txt").value.trim(); if (!t) return; LS.set(pre + "txt", t); $("txt").value = ""; analyse(); };
+$("savebig").onclick = async () => {
+  const b = $("savebig"); b.disabled = true;
+  try {
+    const db = await idb(); if (!db) throw new Error("base locale indisponible");
+    for (let i = 0; i < NBIG; i++) { $("bigst").textContent = `Enregistrement… ${i} / ${NBIG} Mo`; await idbPut(db, "big-" + String(i).padStart(2, "0"), new Uint8Array(MB).fill(i + 1).buffer); }
+  } catch (e) { $("bigst").textContent = "Échec : " + ((e && e.message) || e); }
+  b.disabled = false; analyse();
+};
+$("wipe").onclick = async () => {
+  ["count", "first", "last", "txt"].forEach(k => { try { localStorage.removeItem(pre + k); } catch (e) { } });
+  try { const db = await idb(); if (db) await new Promise(r => { const t = db.transaction("f", "readwrite"); t.objectStore("f").clear(); t.oncomplete = r; t.onerror = r; }); } catch (e) { }
+  location.reload();
+};
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
+analyse();
+</script>
+</body>
+</html>
