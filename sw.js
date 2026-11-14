@@ -1,5 +1,6 @@
-// Service worker du prototype : garde la page sur l'appareil pour qu'elle s'ouvre sans réseau.
-const CACHE = "proto-cdb-v1";
+// Révisions CDB – garde le chargeur sur l'appareil pour qu'il s'ouvre sans réseau.
+// L'application elle-même et les fiches sont gardées par la page (IndexedDB), pas ici.
+const CACHE = "cdb-shell-v1";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -8,11 +9,12 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// réseau d'abord (pour recevoir les mises à jour), copie locale si pas de réseau
+// réseau d'abord (mises à jour du chargeur), copie locale sans réseau ; les appels au script Google ne passent pas ici
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
+  const u = new URL(e.request.url);
+  if (e.request.method !== "GET" || u.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })
-      .catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match("index.html")))
+    fetch(e.request).then(r => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(u.pathname.endsWith("/") ? "./" : e.request, copy)); } return r; })
+      .catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match("./")))
   );
 });

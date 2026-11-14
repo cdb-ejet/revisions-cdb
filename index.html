@@ -5,154 +5,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Test CDB">
+<meta name="apple-mobile-web-app-title" content="Révisions CDB">
 <meta name="theme-color" content="#1F3864">
+<meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Test stockage – Révisions CDB</title>
+<title>Révisions CDB</title>
 <style>
-:root{--navy:#1F3864;--green:#2E8B57;--red:#C0392B;--bg:#F4F6FA;--line:#dde3ee;--mute:#6b7385}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#1d2433;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-header{background:var(--navy);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
-header h1{font-size:17px;margin:0}
-header div{font-size:12.5px;opacity:.8;margin-top:3px}
-main{max-width:640px;margin:0 auto;padding:16px 14px calc(30px + env(safe-area-inset-bottom))}
-.panel{background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(20,30,60,.08);margin-bottom:14px}
-h2{font-size:16px;margin:0 0 10px;color:var(--navy)}
-.verdict{border-radius:12px;padding:14px 16px;font-size:16px;font-weight:600;margin-bottom:14px;line-height:1.4}
-.ok{background:#E6F4EA;color:#1d5e3a;border-left:6px solid var(--green)}
-.ko{background:#FBE3E1;color:#7B1F1F;border-left:6px solid var(--red)}
-.wait{background:#FFF4D6;color:#6b4e00;border-left:6px solid #C9962A}
-table{width:100%;border-collapse:collapse;font-size:14px}
-td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
-td:first-child{color:var(--mute);width:48%}
-.btn{display:block;width:100%;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:600;background:var(--navy);color:#fff;margin-top:8px;cursor:pointer}
-.btn.sec{background:#e8edf6;color:var(--navy)}
-.btn.red{background:#fbe3e1;color:var(--red)}
-.btn:disabled{opacity:.45}
-input{width:100%;font-size:16px;padding:10px;border-radius:9px;border:1.5px solid var(--line)}
-.muted{color:var(--mute);font-size:13px;line-height:1.45}
+#cdb-boot{position:fixed;inset:0;background:#F4F6FA;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1d2433;z-index:100}
+#cdb-boot .bx{background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%;box-shadow:0 4px 20px rgba(20,30,60,.12)}
+#cdb-boot h1{font-size:19px;margin:0 0 6px;color:#1F3864}
+#cdb-boot p{font-size:14.5px;line-height:1.5;margin:0 0 12px;color:#4a5265}
+#cdb-boot input{width:100%;box-sizing:border-box;font-size:16px;padding:11px;border-radius:10px;border:1.5px solid #dde3ee;margin:4px 0 12px}
+#cdb-boot button{width:100%;border:0;border-radius:10px;padding:13px;font-size:15px;font-weight:600;background:#1F3864;color:#fff;cursor:pointer}
+#cdb-boot .err{background:#FBE3E1;color:#7B1F1F;border-radius:8px;padding:9px 11px;font-size:13.5px;margin-bottom:12px}
+#cdb-boot .spin{width:34px;height:34px;border:4px solid #dde3ee;border-top-color:#1F3864;border-radius:50%;animation:cdbspin 1s linear infinite;margin:6px auto 14px}
+@keyframes cdbspin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<header><h1>Test de stockage – Révisions CDB</h1><div id="mode">…</div></header>
-<main>
-  <div id="verdict" class="verdict wait">Analyse en cours…</div>
-
-  <div class="panel"><h2>Ce que l'appareil a gardé</h2><table id="tbl"></table></div>
-
-  <div class="panel"><h2>1. Texte (comme la version des notes lues)</h2>
-    <input id="txt" placeholder="Tapez un mot, par exemple « Gandalf »">
-    <button class="btn" id="savetxt">Enregistrer ce texte</button>
-  </div>
-
-  <div class="panel"><h2>2. Gros volume (comme les fiches)</h2>
-    <p class="muted">Enregistre 20 Mo dans la base locale, l'équivalent d'un jeu de fiches avec illustrations.</p>
-    <button class="btn" id="savebig">Enregistrer 20 Mo</button>
-    <div class="muted" id="bigst" style="margin-top:8px"></div>
-  </div>
-
-  <div class="panel"><h2>Remise à zéro</h2>
-    <button class="btn red" id="wipe">Tout effacer pour recommencer le test</button>
-  </div>
-
-  <p class="muted">Prototype sans aucun contenu compagnie. Il sert uniquement à vérifier que l'iPad conserve les données entre deux lancements.</p>
-</main>
-
+<div id="cdb-boot"><div class="bx"><div class="spin"></div><p style="text-align:center;margin:0">Ouverture de Révisions CDB…</p></div></div>
 <script>
-const $ = id => document.getElementById(id);
-const fmt = t => t ? new Date(+t).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "—";
-const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-$("mode").textContent = standalone ? "Mode : application de l'écran d'accueil" : "Mode : onglet du navigateur";
+/*
+ * Révisions CDB – chargeur public.
+ * Cette page ne contient aucun contenu : elle demande la clé d'accès, télécharge l'application
+ * depuis le script Google (qui vérifie la clé), la garde sur l'appareil et la lance.
+ * Les échanges avec le script (progression, fiches) passent par des appels à son adresse /exec.
+ */
+(() => {
+  const EXEC = "https://script.google.com/macros/s/AKfycbymDstESl2kAZq00-4HbyVd8lFnWpp2USYG6Y6uqpJXbDREuFTiNiMw7fpPWVDoFyy65A/exec";
+  const KK = "cdb-key";
+  const LONG = { getFiches: 1, getFichesStamp: 1, getApp: 1 };   // peuvent durer (installation des fiches)
+  const boot = document.getElementById("cdb-boot");
+  const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }, del(k) { try { localStorage.removeItem(k); } catch (e) { } } };
 
-// ---- localStorage
-const LS = {
-  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-};
-const pre = standalone ? "app-" : "tab-";
-const prevCount = +(LS.get(pre + "count") || 0), first = LS.get(pre + "first"), prevLast = LS.get(pre + "last");
-const lsOK = LS.set(pre + "count", String(prevCount + 1));
-if (!first) LS.set(pre + "first", String(Date.now()));
-LS.set(pre + "last", String(Date.now()));
+  // ---- clé d'accès : lien ?k=… (prioritaire), sinon celle enregistrée sur l'appareil
+  const keyFrom = s => { const m = String(s || "").match(/[?&]k=([A-Za-z0-9]{12,40})/) || String(s || "").trim().match(/^([A-Za-z0-9]{12,40})$/); return m ? m[1] : ""; };
+  let KEY = keyFrom(location.search) || ls.get(KK) || "";
+  if (KEY) ls.set(KK, KEY);
 
-// ---- IndexedDB
-const MB = 1024 * 1024, NBIG = 20;
-function idb() {
-  return new Promise(res => {
+  // ---- appel au script Google
+  async function call(fn, args, opt = {}) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), LONG[fn] ? 360000 : 45000);
+    const body = JSON.stringify({ fn, args });
+    let res;
     try {
-      const r = indexedDB.open("proto-cdb", 1);
-      r.onupgradeneeded = () => r.result.createObjectStore("f");
-      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
-    } catch (e) { res(null); }
-  });
-}
-function idbAll(db) {
-  return new Promise(res => {
-    try {
-      const out = {}, q = db.transaction("f").objectStore("f").openCursor();
-      q.onsuccess = () => { const c = q.result; if (c) { out[c.key] = c.value; c.continue(); } else res(out); };
-      q.onerror = () => res({});
-    } catch (e) { res({}); }
-  });
-}
-function idbPut(db, k, v) {
-  return new Promise((res, rej) => {
-    try { const t = db.transaction("f", "readwrite"); t.objectStore("f").put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }
-    catch (e) { rej(e); }
-  });
-}
+      res = await fetch(EXEC, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, redirect: "follow", signal: ctl.signal, keepalive: !!opt.keepalive && body.length < 60000 });
+    } catch (e) { throw new Error(e && e.name === "AbortError" ? "Serveur trop long à répondre." : "Serveur injoignable (pas de connexion ?)."); }
+    finally { clearTimeout(t); }
+    let j; try { j = await res.json(); } catch (e) { throw new Error("Réponse du serveur illisible (" + res.status + ")."); }
+    if (!j || !j.ok) throw new Error((j && j.e) || "Erreur du serveur.");
+    return j.r;
+  }
 
-async function analyse() {
-  const db = await idb(), all = db ? await idbAll(db) : {};
-  let bigN = 0, bigB = 0;
-  for (const k in all) if (k.startsWith("big-")) { bigN++; bigB += all[k].byteLength || (all[k].length || 0); }
-  let persisted = null, est = null;
-  try { if (navigator.storage && navigator.storage.persist) persisted = await navigator.storage.persist(); } catch (e) { }
-  try { if (navigator.storage && navigator.storage.estimate) est = await navigator.storage.estimate(); } catch (e) { }
-  const txt = LS.get(pre + "txt");
-  const swOK = "serviceWorker" in navigator && !!navigator.serviceWorker.controller;
+  // ---- passerelle : l'application appelle google.script.run comme lorsqu'elle est servie par le script
+  function runner(ok, ko) {
+    return new Proxy({}, { get(_, name) {
+      if (name === "withSuccessHandler") return f => runner(f, ko);
+      if (name === "withFailureHandler") return f => runner(ok, f);
+      if (typeof name !== "string") return undefined;
+      return (...args) => { call(name, args, { keepalive: name === "setDoc" && document.visibilityState === "hidden" }).then(r => ok && ok(r), e => ko && ko(e)); };
+    } });
+  }
+  window.google = { script: { run: runner(null, null), url: { getLocation(cb) { cb({ parameter: { k: KEY }, parameters: { k: [KEY] }, hash: "" }); } }, host: { close() { }, setHeight() { }, setWidth() { } } } };
 
-  const rows = [
-    ["Lancements comptés", lsOK ? String(prevCount + 1) : "stockage refusé"],
-    ["Premier lancement enregistré", fmt(first || LS.get(pre + "first"))],
-    ["Lancement précédent", fmt(prevLast)],
-    ["Texte enregistré", txt ? "« " + txt + " »" : "—"],
-    ["Gros volume (base locale)", bigN ? `${bigN} / ${NBIG} blocs, ${(bigB / MB).toFixed(0)} Mo` : "—"],
-    ["Stockage durable accordé", persisted === null ? "non pris en charge" : persisted ? "oui" : "non"],
-    ["Espace utilisé / disponible", est ? `${(est.usage / MB).toFixed(1)} Mo / ${(est.quota / MB / 1024).toFixed(1)} Go` : "—"],
-    ["Fonctionne hors ligne", swOK ? "oui" : "pas encore (relancer une fois)"]
-  ];
-  $("tbl").innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td><b></b></td></tr>`).join("");
-  $("tbl").querySelectorAll("b").forEach((b, i) => b.textContent = rows[i][1]);
-  $("bigst").textContent = bigN ? `${bigN} blocs présents sur cet appareil.` : "";
+  // ---- copie locale de l'application (IndexedDB)
+  const idb = () => new Promise(res => { try { const r = indexedDB.open("cdb-shell", 1); r.onupgradeneeded = () => r.result.createObjectStore("a"); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (e) { res(null); } });
+  async function getApp() { const db = await idb(); if (!db) return null; return new Promise(res => { try { const q = db.transaction("a").objectStore("a").get("app"); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); } catch (e) { res(null); } }); }
+  async function putApp(v) { const db = await idb(); if (!db) return; await new Promise(res => { try { const t = db.transaction("a", "readwrite"); t.objectStore("a").put(v, "app"); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } }); }
+  async function delApp() { const db = await idb(); if (!db) return; await new Promise(res => { try { const t = db.transaction("a", "readwrite"); t.objectStore("a").delete("app"); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } }); }
+  async function download() { const r = await call("getApp", [KEY]); const v = { stamp: r.stamp, html: r.html, key: KEY, at: Date.now() }; await putApp(v); return v; }
+  const isKeyErr = e => /cl[ée]/i.test(String(e && e.message || e));
 
-  const v = $("verdict");
-  if (!lsOK || !db) { v.className = "verdict ko"; v.textContent = "✗ Ce navigateur refuse le stockage local."; }
-  else if (prevCount === 0 && !txt && !bigN) { v.className = "verdict wait"; v.textContent = "Premier lancement : enregistrez un texte et les 20 Mo, puis fermez complètement et rouvrez."; }
-  else if (prevCount === 0) { v.className = "verdict ko"; v.textContent = "✗ Les données ont été effacées depuis le dernier lancement."; }
-  else if (txt && bigN === NBIG) { v.className = "verdict ok"; v.textContent = `✓ Données conservées : le texte et les 20 Mo sont toujours là (lancement n° ${prevCount + 1}).`; }
-  else { v.className = "verdict wait"; v.textContent = `Lancement n° ${prevCount + 1} : compteur conservé. Enregistrez le texte et les 20 Mo s'il en manque, puis refermez et rouvrez.`; }
-}
+  // ---- écrans du chargeur
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  function screen(html) { boot.innerHTML = `<div class="bx">${html}</div>`; }
+  function askKey(msg) {
+    screen(`<h1>Révisions CDB</h1>${msg ? `<div class="err">${esc(msg)}</div>` : ""}<p>Collez votre lien personnel d'accès, ou seulement la clé qui le termine (après <b>?k=</b>).</p><input id="cdb-k" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Lien ou clé d'accès"><button id="cdb-go">Ouvrir</button>`);
+    const inp = document.getElementById("cdb-k"), go = () => { const k = keyFrom(inp.value); if (!k) { inp.style.borderColor = "#C0392B"; return; } KEY = k; ls.set(KK, k); start(); };
+    document.getElementById("cdb-go").onclick = go; inp.onkeydown = e => { if (e.key === "Enter") go(); }; inp.focus();
+  }
+  function failed(msg) {
+    screen(`<h1>Révisions CDB</h1><div class="err">${esc(msg)}</div><p>La première ouverture demande une connexion internet. Ensuite, l'application s'ouvre aussi sans réseau.</p><button id="cdb-re">Réessayer</button>`);
+    document.getElementById("cdb-re").onclick = start;
+  }
+  function banner() {
+    if (document.getElementById("cdb-upd")) return;
+    const b = document.createElement("div"); b.id = "cdb-upd";
+    b.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));z-index:90;background:#2E8B57;color:#fff;border-radius:12px;padding:10px 14px;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;max-width:92vw";
+    b.innerHTML = `<span>Nouvelle version de l'application prête.</span><button style="border:0;border-radius:8px;padding:6px 10px;font-weight:700;background:#fff;color:#1d5e3a;cursor:pointer">Recharger</button><button aria-label="Plus tard" style="border:0;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button>`;
+    const [r, x] = b.querySelectorAll("button"); r.onclick = () => location.reload(); x.onclick = () => b.remove();
+    document.body.appendChild(b);
+  }
 
-$("savetxt").onclick = () => { const t = $("txt").value.trim(); if (!t) return; LS.set(pre + "txt", t); $("txt").value = ""; analyse(); };
-$("savebig").onclick = async () => {
-  const b = $("savebig"); b.disabled = true;
-  try {
-    const db = await idb(); if (!db) throw new Error("base locale indisponible");
-    for (let i = 0; i < NBIG; i++) { $("bigst").textContent = `Enregistrement… ${i} / ${NBIG} Mo`; await idbPut(db, "big-" + String(i).padStart(2, "0"), new Uint8Array(MB).fill(i + 1).buffer); }
-  } catch (e) { $("bigst").textContent = "Échec : " + ((e && e.message) || e); }
-  b.disabled = false; analyse();
-};
-$("wipe").onclick = async () => {
-  ["count", "first", "last", "txt"].forEach(k => { try { localStorage.removeItem(pre + k); } catch (e) { } });
-  try { const db = await idb(); if (db) await new Promise(r => { const t = db.transaction("f", "readwrite"); t.objectStore("f").clear(); t.oncomplete = r; t.onerror = r; }); } catch (e) { }
-  location.reload();
-};
+  // ---- lancement de l'application téléchargée
+  function run(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    if (doc.title) document.title = doc.title;
+    doc.head.querySelectorAll("style").forEach(n => document.head.appendChild(document.importNode(n, true)));
+    const scripts = [...doc.body.querySelectorAll("script")]; scripts.forEach(s => s.remove());
+    document.body.innerHTML = doc.body.innerHTML;
+    scripts.forEach(s => { const n = document.createElement("script"); n.textContent = s.textContent; document.body.appendChild(n); });
+  }
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
-analyse();
+  let started = false;
+  async function start() {
+    if (started) return;
+    if (!KEY) return askKey();
+    screen(`<div class="spin"></div><p style="text-align:center;margin:0">Ouverture de Révisions CDB…</p>`);
+    let app = await getApp();
+    if (app && app.key && app.key !== KEY) { await delApp(); app = null; }   // autre clé : on repart du serveur
+    if (app) {
+      started = true; run(app.html);
+      // vérification d'une nouvelle version, sans bloquer
+      call("getAppStamp", [KEY]).then(async s => { if (s && s !== app.stamp) { await download(); banner(); } })
+        .catch(async e => { if (isKeyErr(e)) { ls.del(KK); await delApp(); } });
+      return;
+    }
+    try { const v = await download(); started = true; run(v.html); }
+    catch (e) { if (isKeyErr(e)) { ls.del(KK); KEY = ""; return askKey("Clé d'accès refusée : vérifiez le lien reçu."); } failed(e.message || "Ouverture impossible."); }
+  }
+
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { }
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => { });
+  start();
+})();
 </script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 {
-  "name": "Test stockage – Révisions CDB",
-  "short_name": "Test CDB",
-  "start_url": "./",
+  "name": "Révisions CDB – E190 / E170",
+  "short_name": "Révisions CDB",
   "scope": "./",
   "display": "standalone",
   "background_color": "#F4F6FA",
