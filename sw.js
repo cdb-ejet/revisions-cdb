@@ -1,7 +1,8 @@
 // Révisions CDB – garde le chargeur sur l'appareil pour qu'il s'ouvre sans réseau.
 // L'application elle-même et les fiches sont gardées par la page (IndexedDB), pas ici.
-const CACHE = "cdb-shell-v1";
-const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-512.png"];
+const CACHE = "cdb-shell-v2";   // v2 : polices B612 (thème cockpit, application 4.11)
+const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-512.png",
+  "fonts/B612-Regular.woff2", "fonts/B612-Bold.woff2", "fonts/B612Mono-Regular.woff2", "fonts/B612Mono-Bold.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
